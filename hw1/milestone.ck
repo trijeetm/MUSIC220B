@@ -7,9 +7,9 @@
 //       Stanford University
 //-----------------------------------------------------------------------------
 KSChord ks;
-SndBuf buffy1 => ks => dac;
-SndBuf buffy2 => ks => dac;
-SndBuf buffy3 => ks => dac;
+SndBuf buffy1 => ks => Channel c1 => dac;
+SndBuf buffy2 => ks => Channel c2 => dac;
+SndBuf buffy3 => ks => Channel c3 => dac;
 "special:dope" => buffy1.read;
 "special:dope" => buffy2.read;
 "special:dope" => buffy3.read;
@@ -25,8 +25,55 @@ spork ~ phase1();
 spork ~ phase2();
 spork ~ phase3();
 spork ~ ksMod();
+spork ~ channelMod();
+spork ~ channelModMed();
+spork ~ channelModFast();
+spork ~ c3RevMod();
 
 metro.waitTillMeasure(16);
+
+fun void c3RevMod() {
+    metro.waitForMeasures(1);
+    c3.interpRev(0, 0.5, metro.getMeasureDur() * 2);
+    c3.interpRev(0.5, 0.2, metro.getMeasureDur() * 1);
+
+    metro.waitForMeasures(1);
+    c3.interpRev(0.2, 0.5, metro.getMeasureDur() * 2);
+    c3.interpRev(0.5, 0, metro.getMeasureDur() * 1);
+}
+
+fun void channelMod() {
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 3);
+    metro.waitForMeasures(1);
+
+    c1.interpPan(1, -1, metro.getMeasureDur() * 3);
+    metro.waitForMeasures(1);
+    
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 3);
+    metro.waitForMeasures(1);
+
+    c1.interpPan(1, -1, metro.getMeasureDur() * 3);
+    metro.waitForMeasures(1);
+}
+
+fun void channelModMed() {
+    c1.interpPan(1, -1, metro.getMeasureDur() * 2);
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 2);
+
+    c1.interpPan(1, -1, metro.getMeasureDur() * 2);
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 2);
+
+    c1.interpPan(1, -1, metro.getMeasureDur() * 2);
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 2);
+
+    c1.interpPan(1, -1, metro.getMeasureDur() * 2);
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 2);
+}
+
+fun void channelModFast() {
+    c1.interpPan(1, -1, metro.getMeasureDur() * 1);
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 1);
+}
 
 fun void ksMod() {
     Interpolator ksInterp;
@@ -115,7 +162,7 @@ fun void phase3() {
             (metro.getEighthNoteCount() == 5) ||
             (metro.getEighthNoteCount() == 6) ||
             (metro.getEighthNoteCount() == 7))
-            playBuff(buffy3, 0.1, 8);
+            playBuff(buffy3, 0.2, 8);
         metro.eighthNoteTick => now;
     }
 
