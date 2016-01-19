@@ -43,6 +43,20 @@ public class Metronome {
         ((1 / bpm) / (NOTE_SUBDIVISION / beatMeasure))::minute => quanta;
     }
 
+    fun void updateBpm(float newBpm) {
+        newBpm => bpm;
+        ((1 / bpm) / (NOTE_SUBDIVISION / beatMeasure))::minute => quanta;
+    }
+
+    fun void interpBpm(float start, float end, dur duration) {
+        Interpolator iBpm;
+        iBpm.setup(start, end, duration);
+        while (start != end) {
+            updateBpm(iBpm.getCurrent());
+            1::samp => now;
+        }
+    }
+
     fun void start() {
         true => isMetroOn;
         spork ~ startTick();
@@ -96,6 +110,10 @@ public class Metronome {
 
     fun dur getMeasureDur() {
         return quanta * (NOTE_SUBDIVISION / beatMeasure) * beatNumber;
+    }
+
+    fun dur getMeasureDur(int nMeasures) {
+        return quanta * (NOTE_SUBDIVISION / beatMeasure) * beatNumber * nMeasures;
     }
 
     fun int getMeasure() {
