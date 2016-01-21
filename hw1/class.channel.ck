@@ -12,7 +12,13 @@ public class Channel extends Chubgraph {
     Gain master;
     NRev rev;
 
-    inlet => rev => pan => master => outlet;
+    0 => rev.mix;
+    0 => pan.pan;
+
+    inlet => rev => pan => outlet;
+
+    fun UGen L() { return pan.left; }
+    fun UGen R() { return pan.right; }
 
     // range (0, ?)
     fun void setGain(float g) {
@@ -21,7 +27,9 @@ public class Channel extends Chubgraph {
 
     // range (-1, 1)
     fun void setPan(float p) {
+        <<< pan, pan.pan() >>>;
         p => pan.pan;
+        <<< pan, pan.pan() >>>;
     }
 
     fun void setRev(float mix) {

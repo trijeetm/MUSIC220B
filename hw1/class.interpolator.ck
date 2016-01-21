@@ -7,6 +7,8 @@
 //       Stanford University
 //-----------------------------------------------------------------------------
 
+// TODO create a non blokcing interpolator
+
 public class Interpolator {
     // interpolator values
 	float start, end, current;
