@@ -15,21 +15,19 @@ public class Channel extends Chubgraph {
     0 => rev.mix;
     0 => pan.pan;
 
-    inlet => rev => pan => outlet;
+    inlet => rev => master => pan => outlet;
 
     fun UGen L() { return pan.left; }
     fun UGen R() { return pan.right; }
 
     // range (0, ?)
-    fun void setGain(float g) {
+    fun void setMaster(float g) {
         g => master.gain;
     }
 
     // range (-1, 1)
     fun void setPan(float p) {
-        <<< pan, pan.pan() >>>;
         p => pan.pan;
-        <<< pan, pan.pan() >>>;
     }
 
     fun void setRev(float mix) {
@@ -39,27 +37,35 @@ public class Channel extends Chubgraph {
     fun void interpPan(float start, float end, dur duration) {
         Interpolator interpPan;
         interpPan.setup(start, end, duration);
-        while (start != end) {
+        interpPan.interpolate();
+        while (interpPan.getCurrent() != interpPan.end) {
             interpPan.getCurrent() => pan.pan;
-            1::samp => now;
+            interpPan.delta => now;
         }
+        interpPan.getCurrent() => pan.pan;
+
     }
 
     fun void interpMaster(float start, float end, dur duration) {
         Interpolator iGain;
         iGain.setup(start, end, duration);
-        while (start != end) {
+        iGain.interpolate();
+        while (iGain.getCurrent() != iGain.end) {
             iGain.getCurrent() => master.gain;
-            1::samp => now;
+            iGain.delta => now;
         }
+        iGain.getCurrent() => master.gain;
+
     }
 
     fun void interpRev(float start, float end, dur duration) {
         Interpolator iRev;
         iRev.setup(start, end, duration);
-        while (start != end) {
+        iRev.interpolate();
+        while (iRev.getCurrent() != iRev.end) {
             iRev.getCurrent() => rev.mix;
-            1::samp => now;
+            iRev.delta => now;
         }
+        iRev.getCurrent() => rev.mix;
     }
 }

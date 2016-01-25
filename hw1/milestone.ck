@@ -11,11 +11,11 @@ KSChord ks2;
 KSChord ks3; 
 Pan2 p;
 // -1 => p.pan;
-SndBuf buffy1 => ks1 => Channel c1; // => blackhole; 
+SndBuf buffy1 => ks1 => Channel c1; 
 c1.L() => dac.left; c1.R() => dac.right;
-SndBuf buffy2 => ks2 => Channel c2; // => blackhole;
+SndBuf buffy2 => ks2 => Channel c2;
 c2.L() => dac.left; c2.R() => dac.right;
-SndBuf buffy3 => ks3 => Channel c3; // => blackhole;
+SndBuf buffy3 => ks3 => Channel c3;
 c3.L() => dac.left; c3.R() => dac.right;
 "special:dope" => buffy1.read;
 "special:dope" => buffy2.read;
@@ -23,8 +23,6 @@ c3.L() => dac.left; c3.R() => dac.right;
 0 => buffy1.gain;
 0 => buffy2.gain;
 0 => buffy3.gain;
-
-<<< c1.L(), c1.R() >>>;
 
 Metronome metro;
 metro.setup(120, 4, 4);
@@ -52,11 +50,8 @@ fun void c3RevMod() {
 }
 
 fun void channelMod() {
-    c1.interpPan(1, -1, metro.getMeasureDur() * 4);
-    c1.interpPan(-1, 1, metro.getMeasureDur() * 4);
-
-    c1.interpPan(1, -1, metro.getMeasureDur() * 4);
-    c1.interpPan(-1, 1, metro.getMeasureDur() * 4);
+    c1.interpPan(1, -1, metro.getMeasureDur() * 8);
+    c1.interpPan(-1, 1, metro.getMeasureDur() * 8);
 }
 
 fun void channelModMed() {
@@ -155,7 +150,6 @@ fun void ksMod() {
     }
     // 4
     metro.waitForMeasures(2);
-    <<< "!" >>>;
     ksInterp.setup(endFb, startFb, metro.getMeasureDur() * 2);
     ksInterp.interpolate();
     ksInterp.getCurrent() => fb;
@@ -169,7 +163,7 @@ fun void ksMod() {
 }
 
 fun void phase1() {
-    metro.waitTillMeasure(4);
+    // metro.waitTillMeasure(4);
 
     while (metro.getMeasure() < 8) {
         if (metro.getQuarterNoteCount() == 0)
@@ -186,7 +180,7 @@ fun void phase1() {
 }
 
 fun void phase2() {
-    metro.waitTillMeasure(2);
+    //metro.waitTillMeasure(2);
 
     while (metro.getMeasure() < 16) {
         if ((metro.getQuarterNoteCount() == 2) || (metro.getQuarterNoteCount() == 3))
@@ -196,7 +190,7 @@ fun void phase2() {
 }
 
 fun void phase3() {
-    metro.waitTillMeasure(4);
+    //metro.waitTillMeasure(4);
 
     while (metro.getMeasure() < 10) {
         if ((metro.getEighthNoteCount() == 2) || 
@@ -225,6 +219,7 @@ fun void phase3() {
 }
 
 fun void playBuff(SndBuf buff, float gain, float rate) {
+    0 => buff.gain;
     0 => buff.pos;
     gain => buff.gain;
     rate => buff.rate;

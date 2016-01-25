@@ -1,4 +1,4 @@
-CLASSES = class.interpolator.ck class.metronome.ck class.channel.ck class.ks-chord.ck
+CLASSES = class.interpolator.ck class.metronome.ck class.channel.ck class.ks.ck class.ks-chord.ck
 DEFAULTEXEC = client.ck
 
 all: 
@@ -12,3 +12,6 @@ client:
 
 milestone: 
 	chuck $(CLASSES) milestone.ck
+
+music: 
+	chuck $(CLASSES) music.ck
