@@ -18,7 +18,7 @@ dac => WvOut2 w => blackhole;
 <<<"writing to file: ", w.filename()>>>;
 
 // any gain you want for the output
-0.5 => w.gain;
+0.1 => dac.gain;
 
 // temporary workaround to automatically close file on remove-shred
 null @=> w;

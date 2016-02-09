@@ -111,8 +111,8 @@ fun void main() {
   spork ~ c_Perc3.interpPan(1, 0, metro.getMeasureDur(16));
 
   metro2.waitTillMeasure(32);
-  s_wilson.play(2.2);
-  c_wilson.setPan(0.35);
+  s_wilson.play(2.4);
+  c_wilson.setPan(0.4);
 
   // metro2.waitTillMeasure(44);
   spork ~ c_Perc3.interpLPFFreq(20000, 500, metro2.getMeasureDur(48));
