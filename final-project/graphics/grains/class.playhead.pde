@@ -1,29 +1,31 @@
-// class Playhead {
-//   ArrayList<PShape> slices;
-//   int head;
-//   int lead;
-//   int trail;
+class Playhead {
+  int head;
+  Ani headAni;
+  boolean running;
 
-//   Playhead(ArrayList<PShape> s) {
-//     slices = s;
-//     head = lead = trail = 0;
-//   }
+  Playhead() {
+    running = false;
+    head = 1;
+    // headAni = new Ani();
+  }
 
-//   void update(float p, float w, float d) {
-//     head = Math.round(p * 200);
-//   }
+  void fire(int start, int end, float dur) {
+    head = start;
+    headAni = new Ani(this, dur, "head", end, Ani.LINEAR);
+    headAni.setCallback("onEnd:headAniEnd");
+    running = true;
+    headAni.start();
+  }
 
-//   void draw() {
-//     PShape slice = slices.get(head);
-//     slice.setFill(color(255, 45, 85));
-//     shape(slice);
+  void headAniEnd() {
+    running = false;
+  }
 
-//     slice = slices.get(lead);
-//     slice.setFill(color(255, 45, 85));
-//     shape(slice);
+  int getPosition() {
+    return head;
+  }
 
-//     slice = slices.get(trail);
-//     slice.setFill(color(255, 45, 85));
-//     shape(slice);
-//   }
-// }
+  boolean isRunning() {
+    return running;
+  }
+}

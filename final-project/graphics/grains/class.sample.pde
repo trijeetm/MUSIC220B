@@ -2,18 +2,35 @@ class Sample {
   ArrayList<PShape> slices;
   int nSlices;
   boolean ready;
+  int width;
+  int height;
+  int totalSlices;
+  int sliceWidth;
+  int slicePadding;
+  int id;
+  int xOffset;
+  int yOffset;
 
-  Sample() {
+  Sample(int _id, int _w, int _h, int _n, int _x, int _y) {
+    id = _id;
     slices = new ArrayList<PShape>();
     nSlices = 0;
     ready = false;
+    width = _w;
+    height = _h;
+    totalSlices = _n;
+    slicePadding = 1;
+    sliceWidth = (width / _n);
+    xOffset = _x;
+    yOffset = _y;
   }
 
   void addSlice(float amplitude) {
-    println(amplitude);
     if (amplitude != -1) {
-      println(amplitude);
-      PShape slice = createShape(RECT, 100 + (nSlices * 3), 400 - ((amplitude * 100) / 2), 2, (amplitude * 100));
+      amplitude = (float)Math.pow(amplitude, 0.5);
+      float x = xOffset + (nSlices * sliceWidth);
+      float y = yOffset - (amplitude * height / 2);
+      PShape slice = createShape(RECT, x, y, sliceWidth - slicePadding, amplitude * height);
       slices.add(slice);
       nSlices++;
     }

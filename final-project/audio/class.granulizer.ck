@@ -39,7 +39,7 @@ public class Granulizer {
 
     PoleZero blocker;
     // pole location to block DC and ultra low frequencies
-    0.98 => blocker.blockZero;
+    0.95 => blocker.blockZero;
 
     // ----
 
@@ -63,7 +63,7 @@ public class Granulizer {
         _id => id;
 
         // init graphics
-        xmit.startMsg( "/granulizer/init", "i" );
+        xmit.startMsg("/granulizer/init", "i");
         id => xmit.addInt;
 
         channel.setMaster(0);
@@ -84,7 +84,7 @@ public class Granulizer {
             fireGrain();
             // amount here naturally controls amount of overlap between grains
             // SAMPLE_LENGTH / 32 + Math.random2f(0, GRAIN_FIRE_RANDOM)::ms => now;
-            5000::ms => now;
+            1000::ms => now;
         }
     }
 
@@ -95,7 +95,8 @@ public class Granulizer {
     fun void setPos(float pos) {
         pos => GRAIN_POSITION;
 
-        xmit.startMsg( "/granulizer/prop/pos", "f" );
+        xmit.startMsg( "/granulizer/prop/pos", "i f" );
+        id => xmit.addInt;
         pos => xmit.addFloat;
     }
 
@@ -130,7 +131,8 @@ public class Granulizer {
     fun void setLength(float len) {
         len => GRAIN_LENGTH;
 
-        xmit.startMsg( "/granulizer/prop/len", "f" );
+        xmit.startMsg( "/granulizer/prop/len", "i f" );
+        id => xmit.addInt;
         len => xmit.addFloat;
     }
 
@@ -197,18 +199,21 @@ public class Granulizer {
 
         // send sample data to processing
         0 => int s;
-        for (int i; i < 200; i++) {
-            xmit.startMsg("/granulizer/setup", "f");
+        150 => int nSlices;
+        for (int i; i < nSlices; i++) {
+            xmit.startMsg("/granulizer/setup", "i f");
+            id => xmit.addInt;
             buffy.valueAt(s) => float _samp;
-            0.01 => float min;
             if (_samp < 0)
                 -1 *=> _samp;
-            if (_samp < min)
-                min => _samp;
+            // 0.03 => float min;
+            // if (_samp < min)
+                // min => _samp;
             _samp => xmit.addFloat;
-            (buffy.samples() / 200) +=> s;
+            (buffy.samples() / nSlices) +=> s;
         }
-        xmit.startMsg( "/granulizer/setup", "f" );
+        xmit.startMsg( "/granulizer/setup", "i f" );
+        id => xmit.addInt;
         -1 => xmit.addFloat;
         
         return lisa;
@@ -222,12 +227,10 @@ public class Granulizer {
         // ramp time
         grainLen * GRAIN_RAMP_FACTOR => dur rampTime;
         // play pos
-        GRAIN_POSITION + Math.random2f(0,GRAIN_POSITION_RANDOM) => float pos;
+        GRAIN_POSITION + Math.random2f(0, GRAIN_POSITION_RANDOM) => float pos;
 
-        // xmit.startMsg( "/granulizer/fire", "f f f" );
-        // GRAIN_POSITION => xmit.addFloat;
-        // GRAIN_LENGTH => xmit.addFloat;
-        xmit.startMsg( "/granulizer/fire", "f" );
+        xmit.startMsg( "/granulizer/fire", "i f" );
+        id => xmit.addInt;
         (grainLen / 1::second) / GRAIN_PLAY_RATE => xmit.addFloat;
 
         // a grain
@@ -241,6 +244,10 @@ public class Granulizer {
     {
         // get a voice to use
         lisa.getVoice() => int voice;
+
+        grainLen / rate => grainLen;
+        rampUp / rate => rampUp;
+        rampDown / rate => rampDown;
 
         // if available
         if( voice > -1 )

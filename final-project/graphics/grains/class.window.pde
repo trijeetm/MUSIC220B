@@ -1,22 +1,35 @@
 class Window {
   ArrayList<PShape> slices;
   float width;
+  float height;
   float pos;
   int startSlice;
   int endSlice;
-  ArrayList<Integer> playheads;
-  int head;
+  int nSlices;
+  int MAX_WIDTH;
+  int xOffset;
+  int yOffset;
 
-  static final int MAX_WIDTH = 600;
+  ArrayList<Playhead> heads;
+  int currHead;
+  static final int MAX_HEADS = 25;
 
-  Window(ArrayList<PShape> s) {
+  Window(ArrayList<PShape> s, int _w, int _h, int _nSlices, int _x, int _y) {
     slices = s;
+    nSlices = _nSlices;
+    MAX_WIDTH = _w;
     pos = 0;
     width = 0;
+    height = _h;
     startSlice = 0;
     endSlice = 0;
-    playheads = new ArrayList<Integer>();
-    head = -1;
+    heads = new ArrayList<Playhead>(MAX_HEADS);
+    for (int i = 0; i < MAX_HEADS; ++i) {
+      heads.add(new Playhead());
+    }
+    currHead = 0;
+    xOffset = _x;
+    yOffset = _y;
   }
 
   void update(float p, float w) {
@@ -36,21 +49,14 @@ class Window {
         width = _width;
     }
 
-    startSlice = (int)Math.ceil(pos * 200);
-    endSlice = (int)Math.ceil((pos + width) * 200);
-    // println("----");
-    // println("pos: "+pos);
-    // println("width: "+width);
-    // println("startSlice: "+startSlice);
-    // println("endSlice: "+endSlice);
+    startSlice = (int)Math.floor(pos * nSlices);
+    endSlice = (int)Math.ceil((pos + width) * nSlices);
   }
 
   void firePlayhead(float dur) {
-    // playheads.add(startSlice);
-    head = startSlice - 1;
-    // Ani playheadAni = new Ani(this, dur, "playheads.get(playheads.size() - 1)", endSlice, Ani.LINEAR);
-    Ani playheadAni = new Ani(this, dur, "head", endSlice - 1, Ani.LINEAR);
-    playheadAni.start();
+    Playhead head = heads.get(currHead);
+    head.fire(startSlice, endSlice - 1, dur);
+    currHead = (currHead + 1) % MAX_HEADS;
   }
 
   void draw() {
@@ -67,34 +73,41 @@ class Window {
     // rect(100 + (pos * MAX_WIDTH), 400 - 25, (width * MAX_WIDTH), 50);
 
     // line window
-    stroke(255, 45, 85);
-    strokeWeight(1);
-    line(100 + (pos * MAX_WIDTH), 400 - 50, 100 + (pos * MAX_WIDTH), 400 + 50);
-    line(100 + (pos * MAX_WIDTH) + (width * MAX_WIDTH), 400 - 50, 100 + (pos * MAX_WIDTH) + (width * MAX_WIDTH), 400 + 50);
+    stroke(255, 45, 85, 75);
+    strokeWeight(3);
+    line(xOffset + (pos * MAX_WIDTH) - 2, yOffset - (height / 2), xOffset + (pos * MAX_WIDTH) - 2, yOffset + (height / 2));
+    line(xOffset + (pos * MAX_WIDTH) - 2 + (width * MAX_WIDTH), yOffset - (height / 2), xOffset + (pos * MAX_WIDTH) - 2 + (width * MAX_WIDTH), yOffset + (height / 2));
     noStroke();
 
-    if (head != -1) {
-      PShape headSlice = slices.get(head);
-      headSlice.setFill(color(255, 255, 255));
-      headSlice.setStroke(0);
-      shape(headSlice);
+    if (slices.size() > 0) {
+      for (Playhead h : heads) {
+        if (
+          (h.getPosition() != -1) && (h.isRunning()) &&
+          (h.getPosition() < endSlice)
+        ) {
+          PShape headSlice = slices.get(h.getPosition());
+          headSlice.setFill(color(255, 255, 255, 230));
+          headSlice.setStroke(0);
+          shape(headSlice);
 
-      if (head < 199) {
-        PShape leadSlice = slices.get(head + 1);
-        leadSlice.setFill(color(255, 255, 255));
-        leadSlice.setStroke(0);
-        shape(leadSlice);
-      }
+          if (h.getPosition() < nSlices - 1) {
+            PShape leadSlice = slices.get(h.getPosition() + 1);
+            leadSlice.setFill(color(255, 255, 255, 120));
+            leadSlice.setStroke(0);
+            shape(leadSlice);
+          }
 
-      if (head > 2) {
-        PShape trailSlice = slices.get(head - 1);
-        trailSlice.setFill(color(255, 255, 255));
-        trailSlice.setStroke(0);
-        shape(trailSlice);
+          if (
+            (h.getPosition() > 2) &&
+            (h.getPosition() > startSlice)
+          ) {
+            PShape trailSlice = slices.get(h.getPosition() - 1);
+            trailSlice.setFill(color(255, 255, 255, 120));
+            trailSlice.setStroke(0);
+            shape(trailSlice);
+          }
+        }
       }
     }
-
-    // if (playheads.size() != 0)
-    //   println("playheads.get(playheads.size() - 1): "+playheads.get(playheads.size() - 1));
   }
 }

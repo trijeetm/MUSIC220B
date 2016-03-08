@@ -5,14 +5,16 @@ import de.looksgood.ani.*;
 OscP5 oscP5;
 
 // geometry
-Sample sample;
-Window grain;
+static int N_GRAINS = 8;
+Sample[] samples = new Sample[N_GRAINS];
+Window[] grains = new Window[N_GRAINS];
 
 void setup() {
-  size(800, 800, P2D);
+  size(1920, 1080, P2D);
   smooth(8);
   noStroke();
-  frameRate(25);
+  noCursor();
+  frameRate(24);
 
   Ani.init(this);
   
@@ -34,38 +36,48 @@ void setup() {
 }
 
 void initGrain(int id) {
-  sample = new Sample();
-  grain = new Window(sample.getSlices());
+  if (id == 0) {
+    samples[id] = new Sample(1, 450, 100, 150, 255, 880);
+    grains[id] = new Window(samples[id].getSlices(), 450, 100, 150, 255, 880);
+  }
+  if (id == 1) {
+    samples[id] = new Sample(1, 450, 100, 150, 1215, 880);
+    grains[id] = new Window(samples[id].getSlices(), 450, 100, 150, 1215, 880);
+  }
 }
 
-void fireGrain(float dur) {
+void fireGrain(int id, float dur) {
   // println("----");
   // println("pos: "+pos);
   // println("len: "+len);
   // println("dur: "+dur);
-  grain.firePlayhead(dur);
+  grains[id].firePlayhead(dur);
 }
 
-void setupGrain(float amplitude) {
-  sample.addSlice(amplitude);
+void setupGrain(int id, float amplitude) {
+  samples[id].addSlice(amplitude);
 }
 
-void setWindowLength(float len) {
-  grain.update(-1, len);
+void setWindowLength(int id, float len) {
+  grains[id].update(-1, len);
 }
 
-void setWindowPos(float pos) {
-  grain.update(pos, -1);
+void setWindowPos(int id, float pos) {
+  grains[id].update(pos, -1);
 }
 
 void draw() {
   background(0);
 
-  if (sample != null)
-    sample.draw();
+  for (int i = 0; i < N_GRAINS; i++) {
+    Sample sample = samples[i];
+    if (sample != null)
+      sample.draw();
 
-  if (grain != null)
-    grain.draw();
+    Window grain = grains[i];
+    if (grain != null)
+      grain.draw();
+  }
 }
 
 
