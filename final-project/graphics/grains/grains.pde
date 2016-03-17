@@ -8,7 +8,7 @@ OscP5 oscP5;
 Colors colors = new Colors();
 
 // geometry
-static int N_GRAINS = 8;
+static int N_GRAINS = 4;
 Sample[] samples = new Sample[N_GRAINS];
 Window[] grains = new Window[N_GRAINS];
 Blob[] blobs = new Blob[N_GRAINS];
@@ -59,6 +59,16 @@ void initGrain(int id) {
   if (id == 1) {
     samples[id] = new Sample(id, 450, 100, 150, 1215, 880);
     grains[id] = new Window(id, samples[id].getSlices(), 450, 100, 150, 1215, 880);
+  }
+
+  if (id == 2) {
+    samples[id] = new Sample(id, 450, 100, 150, 255, 280);
+    grains[id] = new Window(id, samples[id].getSlices(), 450, 100, 150, 255, 280);
+  }
+
+  if (id == 3) {
+    samples[id] = new Sample(id, 450, 100, 150, 1215, 280);
+    grains[id] = new Window(id, samples[id].getSlices(), 450, 100, 150, 1215, 280);
   }
 
   blobs[id] = new Blob(id);

@@ -11,7 +11,7 @@
 // Graunlizer setup
 // ----------------
 
-2 => int N_GRANULIZERS;
+4 => int N_GRANULIZERS;
 Channel channels[N_GRANULIZERS];
 Granulizer granulizers[N_GRANULIZERS];
 
@@ -26,32 +26,11 @@ fun void main() {
   // Metronome metro;
   // metro.setup(90, 4, 4);  
 
-  // metro.start();
-
-  // spork ~ logger(metro);
-
-  // spork ~ intro(metro, 0);
-
-  // metro.waitForMeasures(512);
-
   // granulizers init
   granulizers[0].setup(0, "piston.wav", channels[0]);
   granulizers[1].setup(1, "glass.wav", channels[1]);
-
-  // fire granulizers
-  // spork ~ granulizers[0].granulize();
-  // spork ~ granulizers[1].granulize();
-
-  // channels[0].setMaster(0.5);
-  // channels[1].setMaster(0.5);
-
-  // granulizers[0].setPos(0.5);
-  // granulizers[0].setLength(0.5);
-  // granulizers[0].setRate(4);
-
-  // granulizers[1].setPos(0.5);
-  // granulizers[1].setLength(0.5);
-  // granulizers[1].setRate(4);
+  granulizers[2].setup(2, "piston.wav", channels[2]);
+  granulizers[3].setup(3, "glass.wav", channels[3]);
   
   // MIDI setup
   MidiIn MIDIInput;
@@ -102,6 +81,10 @@ fun void handleMIDIInput(int data1, int data2, int data3) {
       0 => cc_id;
     if (data1 == 177)
       1 => cc_id;
+    if (data1 == 178)
+      2 => cc_id;
+    if (data1 == 179)
+      3 => cc_id;
   }
 
   // granulizer / pos
@@ -137,6 +120,16 @@ fun void handleMIDIInput(int data1, int data2, int data3) {
       channels[1].setMaster((data3 / 127.0));
     if (data1 == 179)
       channels[1].setRev((data3 / 127.0));
+
+    if (data1 == 180)
+      channels[2].setMaster((data3 / 127.0));
+    if (data1 == 181)
+      channels[2].setRev((data3 / 127.0));
+
+    if (data1 == 182)
+      channels[3].setMaster((data3 / 127.0));
+    if (data1 == 183)
+      channels[3].setRev((data3 / 127.0));
   }
 
   // state toggle
@@ -152,6 +145,10 @@ fun void handleMIDIInput(int data1, int data2, int data3) {
     channels[0].setPan(((data3 - 64.0) / 64.0));
   if (data2 == 49)
     channels[1].setPan(((data3 - 64.0) / 64.0));
+  if (data2 == 50)
+    channels[2].setPan(((data3 - 64.0) / 64.0));
+  if (data2 == 51)
+    channels[3].setPan(((data3 - 64.0) / 64.0));
 }
 
 /*
