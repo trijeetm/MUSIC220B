@@ -17,7 +17,23 @@ public class Channel extends Chubgraph {
     0 => pan.pan;
     20000 => lpf.freq;
 
+    int id;
+
     inlet => rev => master => pan => outlet;
+
+    // ---
+    // osc
+    // ---
+
+    // name
+    "localhost" => string hostname;
+    4242 => int port;
+
+    // send object
+    OscSend xmit;
+
+    // aim the transmitter
+    xmit.setHost( hostname, port );
 
     // outlet is not stereo, so instead on connection outlet to dac, connect 
     // Channel.L and Channel.R as shown below
@@ -30,7 +46,8 @@ public class Channel extends Chubgraph {
         inlet => lpf => rev;
     }
 
-    fun void setup() {
+    fun void setup(int _id) {
+        _id => id;
         L() => dac.left;
         R() => dac.right;
     }
@@ -38,6 +55,10 @@ public class Channel extends Chubgraph {
     // range (0, ?)
     fun void setMaster(float g) {
         g => master.gain;
+
+        xmit.startMsg( "/granulizer/prop/gain", "i f" );
+        id => xmit.addInt;
+        g => xmit.addFloat;
     }
 
     // range (-1, 1)
@@ -47,10 +68,25 @@ public class Channel extends Chubgraph {
         if (p < -1)
             -1 => p;
         p => pan.pan;
+
+        xmit.startMsg( "/granulizer/prop/pan", "i f" );
+        id => xmit.addInt;
+        p => xmit.addFloat;
     }
 
     fun void setRev(float mix) {
         mix => rev.mix;
+    }
+
+    fun void interpPan(float end, dur duration) {
+        Interpolator interpPan;
+        interpPan.setup(pan.pan(), end, duration);
+        interpPan.interpolate();
+        while (interpPan.getCurrent() != interpPan.end) {
+            setPan(interpPan.getCurrent());
+            interpPan.delta => now;
+        }
+        setPan(interpPan.getCurrent());
     }
 
     fun void interpPan(float start, float end, dur duration) {
@@ -62,7 +98,17 @@ public class Channel extends Chubgraph {
             interpPan.delta => now;
         }
         setPan(interpPan.getCurrent());
+    }
 
+    fun void interpMaster(float end, dur duration) {
+        Interpolator iGain;
+        iGain.setup(master.gain(), end, duration);
+        iGain.interpolate();
+        while (iGain.getCurrent() != iGain.end) {
+            setMaster(iGain.getCurrent());
+            iGain.delta => now;
+        }
+        setMaster(iGain.getCurrent());
     }
 
     fun void interpMaster(float start, float end, dur duration) {
@@ -71,10 +117,10 @@ public class Channel extends Chubgraph {
         iGain.setup(start, end, duration);
         iGain.interpolate();
         while (iGain.getCurrent() != iGain.end) {
-            iGain.getCurrent() => master.gain;
+            setMaster(iGain.getCurrent());
             iGain.delta => now;
         }
-        iGain.getCurrent() => master.gain;
+        setMaster(iGain.getCurrent());
     }
 
     fun void interpRev(float start, float end, dur duration) {

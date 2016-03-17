@@ -4,10 +4,16 @@ import de.looksgood.ani.*;
 // osc
 OscP5 oscP5;
 
+// data
+Colors colors = new Colors();
+
 // geometry
 static int N_GRAINS = 8;
 Sample[] samples = new Sample[N_GRAINS];
 Window[] grains = new Window[N_GRAINS];
+Blob[] blobs = new Blob[N_GRAINS];
+// float blob_x1, blob_x2;
+// float blob1_scale, blob2_scale;
 
 void setup() {
   size(1920, 1080, P2D);
@@ -17,6 +23,12 @@ void setup() {
   frameRate(24);
 
   Ani.init(this);
+
+  // blob_x1 = 950;
+  // blob_x2 = 950;
+
+  // blob1_scale = 30;
+  // blob2_scale = 30;
   
   oscP5 = new OscP5(this, 4242);
   
@@ -31,26 +43,41 @@ void setup() {
   oscP5.plug(this, "initGrain", "/granulizer/init");
   oscP5.plug(this, "setupGrain", "/granulizer/setup");
   oscP5.plug(this, "fireGrain", "/granulizer/fire");
+  oscP5.plug(this, "toggleGrain", "/granulizer/toggle");
   oscP5.plug(this, "setWindowLength", "/granulizer/prop/len");
   oscP5.plug(this, "setWindowPos", "/granulizer/prop/pos");
+  oscP5.plug(this, "setGain", "/granulizer/prop/gain");
+  oscP5.plug(this, "setPan", "/granulizer/prop/pan");
 }
 
 void initGrain(int id) {
   if (id == 0) {
-    samples[id] = new Sample(1, 450, 100, 150, 255, 880);
-    grains[id] = new Window(samples[id].getSlices(), 450, 100, 150, 255, 880);
+    samples[id] = new Sample(id, 450, 100, 150, 255, 880);
+    grains[id] = new Window(id, samples[id].getSlices(), 450, 100, 150, 255, 880);
   }
+
   if (id == 1) {
-    samples[id] = new Sample(1, 450, 100, 150, 1215, 880);
-    grains[id] = new Window(samples[id].getSlices(), 450, 100, 150, 1215, 880);
+    samples[id] = new Sample(id, 450, 100, 150, 1215, 880);
+    grains[id] = new Window(id, samples[id].getSlices(), 450, 100, 150, 1215, 880);
+  }
+
+  blobs[id] = new Blob(id);
+}
+
+void toggleGrain(int id, int state) {
+  if (state == 0) {
+    grains[id].hide();
+    samples[id].hide();
+    blobs[id].hide();
+  }
+  if (state == 1) {
+    grains[id].show();
+    samples[id].show();
+    blobs[id].show();
   }
 }
 
 void fireGrain(int id, float dur) {
-  // println("----");
-  // println("pos: "+pos);
-  // println("len: "+len);
-  // println("dur: "+dur);
   grains[id].firePlayhead(dur);
 }
 
@@ -66,6 +93,16 @@ void setWindowPos(int id, float pos) {
   grains[id].update(pos, -1);
 }
 
+void setGain(int id, float gain) {
+  blobs[id].setGain(gain);
+  grains[id].setGain(gain);
+}
+
+
+void setPan(int id, float pan) {
+  blobs[id].setPan(pan);
+}
+
 void draw() {
   background(0);
 
@@ -77,6 +114,10 @@ void draw() {
     Window grain = grains[i];
     if (grain != null)
       grain.draw();
+
+    Blob blob = blobs[i];
+    if (blob != null)
+      blob.draw();
   }
 }
 

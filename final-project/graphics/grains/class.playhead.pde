@@ -10,6 +10,9 @@ class Playhead {
   }
 
   void fire(int start, int end, float dur) {
+    if (running)
+      return;
+    
     head = start;
     headAni = new Ani(this, dur, "head", end, Ani.LINEAR);
     headAni.setCallback("onEnd:headAniEnd");

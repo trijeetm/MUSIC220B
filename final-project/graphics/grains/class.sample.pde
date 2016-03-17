@@ -10,6 +10,7 @@ class Sample {
   int id;
   int xOffset;
   int yOffset;
+  float alpha = 100;
 
   Sample(int _id, int _w, int _h, int _n, int _x, int _y) {
     id = _id;
@@ -51,12 +52,20 @@ class Sample {
     return nSlices;
   }
 
+  void hide() {
+    Ani.to(this, 2, "alpha", 100);
+  }
+
+  void show() {
+    Ani.to(this, 2, "alpha", 255);
+  }
+
   void draw() {
     if (!ready) 
       return;
     
     for (PShape slice : slices) {
-      slice.setFill(color(100, 100, 100));
+      slice.setFill(color(100, 100, 100, alpha));
       slice.setStroke(0);
       shape(slice);
     }

@@ -9,12 +9,17 @@ class Window {
   int MAX_WIDTH;
   int xOffset;
   int yOffset;
+  int id;
+  float alpha = 120;
+  float sliceAlpha = 0;
+  Colors colors = new Colors();
 
   ArrayList<Playhead> heads;
   int currHead;
-  static final int MAX_HEADS = 25;
+  static final int MAX_HEADS = 200;
 
-  Window(ArrayList<PShape> s, int _w, int _h, int _nSlices, int _x, int _y) {
+  Window(int _id, ArrayList<PShape> s, int _w, int _h, int _nSlices, int _x, int _y) {
+    id = _id;
     slices = s;
     nSlices = _nSlices;
     MAX_WIDTH = _w;
@@ -59,11 +64,25 @@ class Window {
     currHead = (currHead + 1) % MAX_HEADS;
   }
 
+  void hide() {
+    Ani.to(this, 2, "alpha", 120);
+  }
+
+  void show() {
+    Ani.to(this, 2, "alpha", 255);
+  }
+
+  void setGain(float g) {
+    sliceAlpha = ((float)Math.pow(g, 0.15));
+  }
+
   void draw() {
     // slice highlighting
     for (int i = startSlice; i < endSlice; i++) {
       PShape slice = slices.get(i);
-      slice.setFill(color(255, 45, 85));
+      color _c = colors.getById(id);
+      color c = (_c & 0xffffff) | ((int)alpha << 24); 
+      slice.setFill(c);
       slice.setStroke(0);
       shape(slice);
     }
@@ -73,7 +92,7 @@ class Window {
     // rect(100 + (pos * MAX_WIDTH), 400 - 25, (width * MAX_WIDTH), 50);
 
     // line window
-    stroke(255, 45, 85, 75);
+    stroke(colors.getById(id), alpha);
     strokeWeight(3);
     line(xOffset + (pos * MAX_WIDTH) - 2, yOffset - (height / 2), xOffset + (pos * MAX_WIDTH) - 2, yOffset + (height / 2));
     line(xOffset + (pos * MAX_WIDTH) - 2 + (width * MAX_WIDTH), yOffset - (height / 2), xOffset + (pos * MAX_WIDTH) - 2 + (width * MAX_WIDTH), yOffset + (height / 2));
@@ -86,13 +105,13 @@ class Window {
           (h.getPosition() < endSlice)
         ) {
           PShape headSlice = slices.get(h.getPosition());
-          headSlice.setFill(color(255, 255, 255, 230));
+          headSlice.setFill(color(255, 255, 255, (230 * sliceAlpha)));
           headSlice.setStroke(0);
           shape(headSlice);
 
           if (h.getPosition() < nSlices - 1) {
             PShape leadSlice = slices.get(h.getPosition() + 1);
-            leadSlice.setFill(color(255, 255, 255, 120));
+            leadSlice.setFill(color(255, 255, 255, (120 * sliceAlpha)));
             leadSlice.setStroke(0);
             shape(leadSlice);
           }
@@ -102,7 +121,7 @@ class Window {
             (h.getPosition() > startSlice)
           ) {
             PShape trailSlice = slices.get(h.getPosition() - 1);
-            trailSlice.setFill(color(255, 255, 255, 120));
+            trailSlice.setFill(color(255, 255, 255, (120 * sliceAlpha)));
             trailSlice.setStroke(0);
             shape(trailSlice);
           }

@@ -21,9 +21,11 @@ public class Granulizer {
     // grain position (0 start; 1 end)
     0 => float GRAIN_POSITION;
     // grain position randomization
-    .001 => float GRAIN_POSITION_RANDOM;
+    0 => float GRAIN_POSITION_RANDOM;
     // grain jitter (0 == periodic fire rate)
     1 => float GRAIN_FIRE_RANDOM;
+    // grain play rate
+    2::second => dur GRAIN_FIRE_RATE;
 
     false => int GRANULATE;
 
@@ -69,27 +71,46 @@ public class Granulizer {
         channel.setMaster(0);
         load(file) @=> lisa;
         lisa.chan(0) => blocker => channel;
-        channel.setup();
+        channel.setup(id);
 
         setPos(0);
         setLength(0);
     }
 
     fun void granulize() {
-        true => GRANULATE;
         // main loop
         while (GRANULATE)
         {
             // fire a grain
             fireGrain();
             // amount here naturally controls amount of overlap between grains
-            // SAMPLE_LENGTH / 32 + Math.random2f(0, GRAIN_FIRE_RANDOM)::ms => now;
-            1000::ms => now;
+            GRAIN_FIRE_RATE + Math.random2f(0, GRAIN_FIRE_RANDOM)::ms => now;
         }
     }
 
-    fun void stopGranulizer() {
+    fun void incGrainFireRate() {
+        GRAIN_FIRE_RATE / 2 => GRAIN_FIRE_RATE;
+    }
+
+    fun void decGrainFireRate() {
+        GRAIN_FIRE_RATE * 2 => GRAIN_FIRE_RATE;
+    }
+
+    fun void start() {
+        true => GRANULATE;
+        spork ~ granulize();
+
+        xmit.startMsg( "/granulizer/toggle", "i i" );
+        id => xmit.addInt;
+        1 => xmit.addInt;
+    }
+
+    fun void stop() {
         false => GRANULATE;
+
+        xmit.startMsg( "/granulizer/toggle", "i i" );
+        id => xmit.addInt;
+        0 => xmit.addInt;
     }
 
     fun void setPos(float pos) {
@@ -98,6 +119,18 @@ public class Granulizer {
         xmit.startMsg( "/granulizer/prop/pos", "i f" );
         id => xmit.addInt;
         pos => xmit.addFloat;
+    }
+
+    fun void setPos(float end, dur duration) {
+        setPos(GRAIN_POSITION);
+        Interpolator interp;
+        interp.setup(GRAIN_POSITION, end, duration);
+        interp.interpolate();
+        while (interp.getCurrent() != interp.end) {
+            setPos(interp.getCurrent());
+            interp.delta => now;
+        }
+        setPos(interp.getCurrent());
     }
 
     fun void setPos(float start, float end, dur duration) {
@@ -113,7 +146,20 @@ public class Granulizer {
     }
 
     fun void setRate(float rate) {
-        rate => GRAIN_PLAY_RATE;
+        if (rate > 0)
+            rate => GRAIN_PLAY_RATE;
+    }
+
+    fun void setRate(float end, dur duration) {
+        setRate(GRAIN_PLAY_RATE);
+        Interpolator interp;
+        interp.setup(GRAIN_PLAY_RATE, end, duration);
+        interp.interpolate();
+        while (interp.getCurrent() != interp.end) {
+            setRate(interp.getCurrent());
+            interp.delta => now;
+        }
+        setRate(interp.getCurrent());
     }
 
     fun void setRate(float start, float end, dur duration) {
@@ -134,6 +180,18 @@ public class Granulizer {
         xmit.startMsg( "/granulizer/prop/len", "i f" );
         id => xmit.addInt;
         len => xmit.addFloat;
+    }
+
+    fun void setLength(float end, dur duration) {
+        setLength(GRAIN_LENGTH);
+        Interpolator interp;
+        interp.setup(GRAIN_LENGTH, end, duration);
+        interp.interpolate();
+        while (interp.getCurrent() != interp.end) {
+            setLength(interp.getCurrent());
+            interp.delta => now;
+        }
+        setLength(interp.getCurrent());
     }
 
     fun void setLength(float start, float end, dur duration) {
@@ -165,8 +223,7 @@ public class Granulizer {
     }
 
     // load file into a LiSa
-    fun LiSa load(string _filename)
-    {
+    fun LiSa load(string _filename) {
         me.sourceDir() + "/samples/" => string path;
         path + _filename => string filename;
 
@@ -185,8 +242,7 @@ public class Granulizer {
         buffy.samples()::samp => lisa.duration;
         
         // transfer values from SndBuf to LiSa
-        for( 0 => int i; i < buffy.samples(); i++ )
-        {
+        for( 0 => int i; i < buffy.samples(); i++ ) {
             // args are sample value and sample index
             // (dur must be integral in samples)
             lisa.valueAt( buffy.valueAt(i), i::samp );        
@@ -206,11 +262,8 @@ public class Granulizer {
             buffy.valueAt(s) => float _samp;
             if (_samp < 0)
                 -1 *=> _samp;
-            // 0.03 => float min;
-            // if (_samp < min)
-                // min => _samp;
             _samp => xmit.addFloat;
-            (buffy.samples() / nSlices) +=> s;
+            buffy.samples() / nSlices +=> s;
         }
         xmit.startMsg( "/granulizer/setup", "i f" );
         id => xmit.addInt;
@@ -220,8 +273,7 @@ public class Granulizer {
     }
 
     // fire!
-    fun void fireGrain()
-    {
+    fun void fireGrain() {
         // grain length
         GRAIN_LENGTH * SAMPLE_LENGTH => dur grainLen;
         // ramp time
@@ -240,8 +292,7 @@ public class Granulizer {
     }
 
     // grain sporkee
-    fun void grain( LiSa @ lisa, dur pos, dur grainLen, dur rampUp, dur rampDown, float rate )
-    {
+    fun void grain( LiSa @ lisa, dur pos, dur grainLen, dur rampUp, dur rampDown, float rate ) {
         // get a voice to use
         lisa.getVoice() => int voice;
 
@@ -252,6 +303,8 @@ public class Granulizer {
         // if available
         if( voice > -1 )
         {
+            // no loop
+            lisa.loop(voice, 0);
             // set rate
             lisa.rate( voice, rate );
             // set playhead
@@ -264,6 +317,8 @@ public class Granulizer {
             lisa.rampDown( voice, rampDown );
             // wait
             rampDown => now;
+            // stop
+            lisa.rate(voice, 0);
         }
     }
 }

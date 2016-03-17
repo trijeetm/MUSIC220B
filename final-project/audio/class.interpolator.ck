@@ -20,7 +20,7 @@ public class Interpolator {
         _start => current;
         _end => end;
         _duration => duration;
-        1::samp => delta;
+        100::samp => delta;
     }
 
     // interpolate
