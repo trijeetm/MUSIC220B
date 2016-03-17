@@ -48,6 +48,7 @@ void setup() {
   oscP5.plug(this, "setWindowPos", "/granulizer/prop/pos");
   oscP5.plug(this, "setGain", "/granulizer/prop/gain");
   oscP5.plug(this, "setPan", "/granulizer/prop/pan");
+  oscP5.plug(this, "setDist", "/granulizer/prop/dist");
 }
 
 void initGrain(int id) {
@@ -108,9 +109,12 @@ void setGain(int id, float gain) {
   grains[id].setGain(gain);
 }
 
-
 void setPan(int id, float pan) {
   blobs[id].setPan(pan);
+}
+
+void setDist(int id, float pan) {
+  blobs[id].setDist(pan);
 }
 
 void draw() {

@@ -21,6 +21,11 @@ class Blob {
     Ani.to(this, 0.1, "x", _x);
   }
 
+  void setDist(float pan) {
+    float _y = 530 + (200 * pan);
+    Ani.to(this, 0.1, "y", _y);
+  }
+
   void hide() {
     Ani.to(this, 2, "alpha", 0);
   }

@@ -9,6 +9,7 @@
 
 public class Channel extends Chubgraph {
     Pan2 pan;
+    Pan2 dist;
     Gain master;
     NRev rev;
     LPF lpf;
@@ -40,6 +41,8 @@ public class Channel extends Chubgraph {
     // Channel.L() => dac.left; Channel.R() => dac.right;
     fun UGen L() { return pan.left; }
     fun UGen R() { return pan.right; }
+    fun UGen F() { return dist.left; }
+    fun UGen B() { return dist.right; }
 
     fun void addLPF() {
         inlet =< rev;
@@ -50,6 +53,22 @@ public class Channel extends Chubgraph {
         _id => id;
         L() => dac.left;
         R() => dac.right;
+    }
+
+    fun void multichannelSetup(int _id) {
+        _id => id;
+        // 0    1
+        // 
+        // 6    7
+        L() => dac.chan(0);
+        L() => dac.chan(6);
+        R() => dac.chan(1);
+        R() => dac.chan(7);
+
+        F() => dac.chan(0);
+        F() => dac.chan(1);
+        B() => dac.chan(6);
+        B() => dac.chan(7);
     }
 
     // range (0, ?)
@@ -70,6 +89,19 @@ public class Channel extends Chubgraph {
         p => pan.pan;
 
         xmit.startMsg( "/granulizer/prop/pan", "i f" );
+        id => xmit.addInt;
+        p => xmit.addFloat;
+    }
+
+    // range (-1, 1)
+    fun void setDist(float p) {
+        if (p > 1)
+            1 => p;
+        if (p < -1)
+            -1 => p;
+        p => dist.pan;
+
+        xmit.startMsg( "/granulizer/prop/dist", "i f" );
         id => xmit.addInt;
         p => xmit.addFloat;
     }

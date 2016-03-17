@@ -72,6 +72,7 @@ public class Granulizer {
         load(file) @=> lisa;
         lisa.chan(0) => blocker => channel;
         channel.setup(id);
+        // channel.multichannelSetup(id);
 
         setPos(0);
         setLength(0);

@@ -29,7 +29,7 @@ fun void main() {
   // granulizers init
   granulizers[0].setup(0, "piston.wav", channels[0]);
   granulizers[1].setup(1, "glass.wav", channels[1]);
-  granulizers[2].setup(2, "piston.wav", channels[2]);
+  granulizers[2].setup(2, "synth.wav", channels[2]);
   granulizers[3].setup(3, "glass.wav", channels[3]);
   
   // MIDI setup
@@ -149,6 +149,16 @@ fun void handleMIDIInput(int data1, int data2, int data3) {
     channels[2].setPan(((data3 - 64.0) / 64.0));
   if (data2 == 51)
     channels[3].setPan(((data3 - 64.0) / 64.0));
+
+  // pan
+  if (data2 == 48 + 4)
+    channels[0].setDist(((data3 - 64.0) / 64.0));
+  if (data2 == 49 + 4)
+    channels[1].setDist(((data3 - 64.0) / 64.0));
+  if (data2 == 50 + 4)
+    channels[2].setDist(((data3 - 64.0) / 64.0));
+  if (data2 == 51 + 4)
+    channels[3].setDist(((data3 - 64.0) / 64.0));
 }
 
 /*
